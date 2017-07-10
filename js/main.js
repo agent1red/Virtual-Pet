@@ -75,7 +75,21 @@
       // nothing selected
 
       this.selectedItem = null;
+
+      // ui area is not blaocked at beggining of game
       this.uiBlocked = false;
+
+      // added game stats to background
+      var style = {font: '20px Arial', fill: '#fff'};// define style for statistics text
+      this.game.add.text(10,20, 'Heath:', style); // add to background at x,y location
+      this.game.add.text(140,20, 'Fun:', style);
+
+      // text data for updated helth and fun
+      this.healthText = this.game.add.text(70,20,'', style);
+      this.funText = this.game.add.text(185,20,'', style);
+
+      this.refreshStats(); // function that updates pets custom paramaters stats
+
 
 
    },
@@ -128,7 +142,7 @@ placeItem: function(sprite, event){
 
          }
 
-
+         this.refreshStats();
 
       }, this);
 
@@ -157,10 +171,11 @@ placeItem: function(sprite, event){
                   this.uiBlocked = false;
                   sprite.alpha = 1;
                   this.pet.customParams.fun += 10;
-                  console.log(this.pet.customParams.fun);
+                  this.refreshStats(); 
                },this);
                // initiate the pet rotation
                petRotation.start();
+
             }
          },
          // clearing function
@@ -172,6 +187,11 @@ placeItem: function(sprite, event){
             });
             // changing selected item back to unselected
             this.selectedItem = null;
+         },
+
+         refreshStats: function(){
+            this.healthText.text = this.pet.customParams.health;
+            this.funText.text = this.pet.customParams.fun;
          },
 
    update: function() {
