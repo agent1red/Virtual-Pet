@@ -27,8 +27,13 @@
       this.background.events.onInputDown.add(this.placeItem, this); // event listener using a new function placeItem
 
 
-      this.pet = this.game.add.sprite(100, 400, 'pet');
+      this.pet = this.game.add.sprite(100, 400, 'pet', 0);
       this.pet.anchor.setTo(0.5);
+
+      // create animation for consuming items placed on the background
+      this.pet.animations.add('funnyfaces', [1,2,3,2,1],10 , false )// refere to the spritesheet and give it a key name, then array list of the number frames in any sequence, then frames per second, false for no looping (just play once)
+
+
 
       // setting up custom paramaters for the pet like health and happiness levels
 
@@ -109,13 +114,14 @@ placeItem: function(sprite, event){
       petMovement.to({x: x, y: y}, 700);
       petMovement.onComplete.add(function(){
          newItem.destroy();
+         this.pet.animations.play('funnyfaces');// refernce line 34 for pet animation code
          this.uiBlocked = false;
 
          // create statistics for the pet here
          var stat;// variable stat initiated
          for(stat in newItem.customParams) { // taking custom paramaters that were created for pet and putting them in variable stat
-            if(newItem.customParams.hasOwnProperty(stat)) { // if new item created has custom stat created then the pet stats will be added from stat - this allows only custom paramaters to be used for the pet and not all data created for pet like othen than statistics of health or happiness
-               
+            if(newItem.customParams.hasOwnProperty(stat)) { // if new item created has custom stat created then the pet stats will be added from stat - this allows only custom paramaters to be used for the pet and not all data created for pet like other than statistics of health or happiness - new data is then added or subtracted from stats
+
                console.log(stat);
             this.pet.customParams[stat] += newItem.customParams[stat];
             }
