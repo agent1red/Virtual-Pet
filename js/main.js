@@ -88,17 +88,50 @@ if (!this.uiBlocked) { // if the game ui is blocked
    },
 
 placeItem: function(sprite, event){
-// get position where we touched on the background through an x and y coordinate
+// Iff item is selcted and the ui is not blocked then get the position where we touched on the background through an x and y coordinate..
 
-   var x = event.position.x;
-   var y = event.position.y;
+   if(this.selectedItem && !this.uiBlocked){
+      var x = event.position.x;
+      var y = event.position.y;
 
-// call sprite to be added to that position
+   // call sprite to be added to that position
 
-   var newItem = this.game.add.sprite(x,y, this.selectedItem.key);// creating new item from sprite last selected item using the key variable it will know what the last item in memory is and place that name in memory to be used to call the new sprite
+      var newItem = this.game.add.sprite(x,y, this.selectedItem.key);// creating new item from sprite last selected item using the key variable it will know what the last item in memory is and place that name in memory to be used to call the new sprite
+      newItem.anchor.setTo(0.5);
+      newItem.customParams = this.selectedItem.customParams;// pass teh paramaters of the sprite buttons to the new object item created
+
+      // move pet to new item placed on the background ----
+
+      // block ui while pet is moving
+      this.uiBlocked = true;
+      // created tween animation using variable petMovement then tell pet to move to the current x and y locations that were last stored and the duration of time in milliseconds to get there
+      var petMovement = this.game.add.tween(this.pet);
+      petMovement.to({x: x, y: y}, 700);
+      petMovement.onComplete.add(function(){
+         newItem.destroy();
+         this.uiBlocked = false;
+
+         // create statistics for the pet here
+         var stat;// variable stat initiated
+         for(stat in newItem.customParams) { // taking custom paramaters that were created for pet and putting them in variable stat
+            if(newItem.customParams.hasOwnProperty(stat)) { // if new item created has custom stat created then the pet stats will be added from stat - this allows only custom paramaters to be used for the pet and not all data created for pet like othen than statistics of health or happiness
+               
+               console.log(stat);
+            this.pet.customParams[stat] += newItem.customParams[stat];
+            }
+
+         }
 
 
 
+      }, this);
+
+
+
+
+   }
+      // initiate the petMovment here
+      petMovement.start();
 
 },
       // New function pick item passing the sprite object and event listener
