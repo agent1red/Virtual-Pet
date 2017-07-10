@@ -77,21 +77,58 @@
       // adding buttons to the object sprites in an array
 
       this.buttons = [this.apple, this.candy, this.toy, this.rotate];
-      
+
+      // nothing selected
+
+      this.selectedItem = null;
+      this.uiBlocked = false;
+
 
    },
 
 // New function pick item passing the sprite object and event listener
    pickItem: function(sprite, event) {
-
-      console.log('item picked');
+      // check for blocked UI interface
+if (!this.uiBlocked) {
+   console.log('item picked');
+   this.clearSelection();
+   sprite.alpha = 0.4; // This makes sprite more transparent indicating selection
+   this.selectedItem = sprite;
+}
 
    },
 
       // New function pick item passing the sprite object and event listener
          rotatePet: function(sprite, event) {
+            // if ui is blocked then do this
+            if (!this.uiBlocked) {
+               console.log('object rotated');
+               this.uiBlocked = true;
+               this.clearSelection();
+               sprite.alpha = 0.4; // This makes sprite more transparent indicating selection
 
-            console.log('Object rotated');
+               // pet rotation
+               var petRotation = this.game.add.tween(this.pet);
+               // change pet angle to 720 for multiple rotation
+               petRotation.to({angle: '+2880'}, 800);
+               petRotation.onComplete.add(function(){
+                  this.uiBlocked = false;
+                  sprite.alpha = 1;
+                  this.pet.customParams.fun += 10;
+                  console.log(this.pet.customParams.fun);
+               },this);
+               // initiate the pet rotation
+               petRotation.start();
+            }
+         },
+
+         clearSelection: function() {
+            this.buttons.forEach(function(element, index){
+               element.alpha = 1;
+
+            });
+
+            this.selectedItem = null;
          },
 
    update: function() {
