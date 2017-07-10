@@ -1,20 +1,67 @@
 // This game will have 1 state
 
-var game = new Phaser.Game(640,360,AUTO);
-this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-this.scale.pageAlignHorizontally = true;
-this.scale.pageAlignVertically = true;
+ var GameState = {
+   preload: function() {
 
-var GameState = {
-  preload: function() {
+   },
 
-  },
+   create: function() {
 
-  create: function() {
+   },
 
-  },
+   update: function() {
 
-  update: function() {
+   },
+ };
 
-  },
-};
+ var GameState = {
+   init: function(){
+      this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+      this.scale.pageAlignHorizontally = true;
+      this.scale.pageAlignVertically = true;
+   },
+   preload: function() {
+// Load the game assets here before the game will start
+      this.load.image('backyard', 'assets/images/backyard.png');
+      this.load.image('apple', 'assets/images/apple.png');
+      this.load.image('candy', 'assets/images/candy.png');
+      this.load.image('rotate', 'assets/images/rotate.png');
+      this.load.image('arrow', 'assets/images/arrow.png');
+      this.load.image('toy', 'assets/images/rubber_duck.png');
+      this.load.spritesheet('pet', 'assets/images/pet.png', 97, 83, 5, 1, 1);
+
+
+   },
+
+   create: function() {
+      this.background = this.game.add.sprite(0,0,'backyard');
+
+      this.pet = this.game.add.sprite(100, 400, 'pet');
+      this.pet.anchor.setTo(0.5);
+
+      // setting up custom paramaters for the pet like health and happiness levels
+
+      this.pet.customParams = {health: 100, fun: 100}; 
+
+      this.apple = this.game.add.sprite(30, 570, 'apple');
+      this.candy = this.game.add.sprite(210, 570, 'candy');
+      this.toy = this.game.add.sprite(120, 570, 'toy');
+      this.rotate = this.game.add.sprite(300, 570, 'rotate');
+
+
+
+
+   },
+
+   update: function() {
+
+   },
+
+
+ };
+
+ //initiate the Phaser Framework
+ var game = new Phaser.Game(360, 640, Phaser.AUTO);
+
+ game.state.add('GameState', GameState);
+ game.state.start('GameState');
