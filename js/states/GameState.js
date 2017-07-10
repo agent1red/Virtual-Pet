@@ -1,248 +1,196 @@
-// This game will have 1 state
-
-
+//this game will have only 1 state
 var GameState = {
-  init: function() {
-    this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-    this.scale.pageAlignHorizontally = true;
-    this.scale.pageAlignVertically = true;
-  },
-  preload: function() {
-    // Load the game assets here before the game will start
-    this.load.image('backyard', 'assets/images/backyard.png');
-    this.load.image('apple', 'assets/images/apple.png');
-    this.load.image('candy', 'assets/images/candy.png');
-    this.load.image('rotate', 'assets/images/rotate.png');
-    this.load.image('arrow', 'assets/images/arrow.png');
-    this.load.image('toy', 'assets/images/rubber_duck.png');
-    this.load.spritesheet('pet', 'assets/images/pet.png', 97, 83, 5, 1, 1);
 
-
-  },
-
+  //executed after everything is loaded
   create: function() {
     this.background = this.game.add.sprite(0, 0, 'backyard');
-    // enabling background to be selectable to have items place anywhere on the game background
     this.background.inputEnabled = true;
-    this.background.events.onInputDown.add(this.placeItem, this); // event listener using a new function placeItem
+    this.background.events.onInputDown.add(this.placeItem, this);
 
-
-    this.pet = this.game.add.sprite(100, 400, 'pet', 0);
+    this.pet = this.game.add.sprite(100, 400, 'pet');
     this.pet.anchor.setTo(0.5);
 
-    // create animation for consuming items placed on the background
-    this.pet.animations.add('funnyfaces', [1, 2, 3, 2, 1], 10, false) // refere to the spritesheet and give it a key name, then array list of the number frames in any sequence, then frames per second, false for no looping (just play once)
+    //spritesheet animation
+    this.pet.animations.add('funnyfaces', [1, 2, 3, 2, 1], 7, false);
 
+    //custom properties
+    this.pet.customParams = {health: 100, fun: 100};
 
-
-    // setting up custom paramaters for the pet like health and happiness levels
-
-    this.pet.customParams = {
-      health: 100,
-      fun: 100
-    };
-
-    //drag and drop objects
+    //draggable pet
     this.pet.inputEnabled = true;
     this.pet.input.enableDrag();
 
-
-    // bottom elements of game
-    this.apple = this.game.add.sprite(53, 570, 'apple');
+    this.apple = this.game.add.sprite(72, 570, 'apple');
     this.apple.anchor.setTo(0.5);
-    this.apple.inputEnabled = true; // initializing input
-    this.apple.customParams = {
-      health: 20
-    };
-    this.apple.events.onInputDown.add(this.pickItem, this); // allowing the item to be selected utilizing a new function created called pickItem
+    this.apple.inputEnabled = true;
+    this.apple.customParams = {health: 20};
+    this.apple.events.onInputDown.add(this.pickItem, this);
 
-    this.candy = this.game.add.sprite(223, 570, 'candy');
+    this.candy = this.game.add.sprite(144, 570, 'candy');
     this.candy.anchor.setTo(0.5);
     this.candy.inputEnabled = true;
-    this.candy.customParams = {
-      health: -10,
-      fun: 10
-    };
+    this.candy.customParams = {health: -10, fun: 10};
     this.candy.events.onInputDown.add(this.pickItem, this);
 
-    this.toy = this.game.add.sprite(133, 570, 'toy');
+    this.toy = this.game.add.sprite(216, 570, 'toy');
     this.toy.anchor.setTo(0.5);
     this.toy.inputEnabled = true;
-    this.toy.customParams = {
-      fun: 20
-    };
+    this.toy.customParams = {fun: 20};
     this.toy.events.onInputDown.add(this.pickItem, this);
 
-    this.rotate = this.game.add.sprite(323, 570, 'rotate');
+    this.rotate = this.game.add.sprite(288, 570, 'rotate');
     this.rotate.anchor.setTo(0.5);
     this.rotate.inputEnabled = true;
     this.rotate.events.onInputDown.add(this.rotatePet, this);
 
-    // adding buttons to the object sprites in an array
-
     this.buttons = [this.apple, this.candy, this.toy, this.rotate];
 
-    // nothing selected
-
+    //nothing is selected
     this.selectedItem = null;
 
-    // ui area is not blaocked at beggining of game
+    //the user interface (UI) is not blocked at the start
     this.uiBlocked = false;
 
-    // added game stats to background
-    var style = {
-      font: '20px Arial',
-      fill: '#fff'
-    }; // define style for statistics text
+    var style = { font: '20px Arial', fill: '#fff'};
+    this.game.add.text(10, 20, 'Health:', style);
+    this.game.add.text(140, 20, 'Fun:', style);
 
-    var style2 = {
-      font: '25px Arial',
-      fill: '#111'
-    }; // define style for statistics text
+    this.healthText = this.game.add.text(80, 20, '', style);
+    this.funText = this.game.add.text(185, 20, '', style);
 
+    this.refreshStats();
 
-    this.game.add.text(10, 60, 'Heath:', style); // add to background at x,y location
-    this.game.add.text(110, 60, 'Fun:', style);
-
-    // text data for updated helth and fun
-    this.healthText = this.game.add.text(70, 60, '', style);
-    this.funText = this.game.add.text(155, 60, '', style);
-
-    this.refreshStats(); // function that updates pets custom paramaters stats
-
-    this.game.add.text(50,20, "Reanna's Virtual Pet Game", style2 );
-
-    // decrease the health of the pet every 5 seconds - through a counting loop using Phaser Timer times 5 the reduceProperties function will execute
+    //decrease the health every 5 seconds
     this.statsDecreaser = this.game.time.events.loop(Phaser.Timer.SECOND * 5, this.reduceProperties, this);
 
   },
-
-  // New function pick item passing the sprite object and event listener
   pickItem: function(sprite, event) {
-    // check for blocked UI interface
-    if (!this.uiBlocked) { // if the game ui is blocked
-      console.log('item picked'); // verify this is working
-      this.clearSelection(); // run clearSelection function to clear item
-      sprite.alpha = 0.4; // This makes sprite more transparent indicating selection
+
+    //if the UI is blocked we can't pick an item
+    if(!this.uiBlocked) {
+      console.log('pick item');
+
+      this.clearSelection();
+
+      //alpha to indicate selection
+      sprite.alpha = 0.4;
+
       this.selectedItem = sprite;
     }
+  },
+  rotatePet: function(sprite, event) {
+
+    if(!this.uiBlocked) {
+
+      //we want the user interface (UI) to be blocked until the rotation ends
+      this.uiBlocked = true;
+
+      this.clearSelection();
+
+      //alpha to indicate selection
+      sprite.alpha = 0.4;
+
+      var petRotation = this.game.add.tween(this.pet);
+
+      //make the pet do two loops
+      petRotation.to({angle: '+720'}, 1000);
+
+      petRotation.onComplete.add(function(){
+        //release the UI
+        this.uiBlocked = false;
+
+        sprite.alpha = 1;
+
+        //increse the fun of the pet
+        this.pet.customParams.fun += 10;
+
+        //update the visuals for the stats
+        this.refreshStats();
+
+      }, this);
+
+      //start the tween animation
+      petRotation.start();
+    }
+
 
   },
+  clearSelection: function() {
 
+    //remove transparency from all buttons
+    this.buttons.forEach(function(element, index){
+      element.alpha = 1;
+    });
+
+    //we are not selecting anything now
+    this.selectedItem = null;
+  },
   placeItem: function(sprite, event) {
-    // Iff item is selcted and the ui is not blocked then get the position where we touched on the background through an x and y coordinate..
 
-    if (this.selectedItem && !this.uiBlocked) {
+    if(this.selectedItem && !this.uiBlocked) {
       var x = event.position.x;
       var y = event.position.y;
 
-      // call sprite to be added to that position
-
-      var newItem = this.game.add.sprite(x, y, this.selectedItem.key); // creating new item from sprite last selected item using the key variable it will know what the last item in memory is and place that name in memory to be used to call the new sprite
+      var newItem = this.game.add.sprite(x, y, this.selectedItem.key);
       newItem.anchor.setTo(0.5);
-      newItem.customParams = this.selectedItem.customParams; // pass teh paramaters of the sprite buttons to the new object item created
+      newItem.customParams = this.selectedItem.customParams;
 
-      // move pet to new item placed on the background ----
-
-      // block ui while pet is moving
       this.uiBlocked = true;
-      // created tween animation using variable petMovement then tell pet to move to the current x and y locations that were last stored and the duration of time in milliseconds to get there
+
+      //move the pet towards the item
       var petMovement = this.game.add.tween(this.pet);
-      petMovement.to({
-        x: x,
-        y: y
-      }, 700);
-      petMovement.onComplete.add(function() {
+      petMovement.to({x: x, y: y}, 700);
+      petMovement.onComplete.add(function(){
+
+        //destroy the apple/candy/duck
         newItem.destroy();
-        this.pet.animations.play('funnyfaces'); // refernce line 34 for pet animation code
+
+        //play animation
+        this.pet.animations.play('funnyfaces');
+
+        //release the ui
         this.uiBlocked = false;
 
-        // create statistics for the pet here
-        var stat; // variable stat initiated
-        for (stat in newItem.customParams) { // taking custom paramaters that were created for pet and putting them in variable stat
-          if (newItem.customParams.hasOwnProperty(stat)) { // if new item created has custom stat created then the pet stats will be added from stat - this allows only custom paramaters to be used for the pet and not all data created for pet like other than statistics of health or happiness - new data is then added or subtracted from stats
-
-            console.log(stat);
+        var stat;
+        for(stat in newItem.customParams) {
+          //we only want the properties of the customParams object, not properties that may existing in customParams.prototype
+          //this filters out all non-desired properties
+          if(newItem.customParams.hasOwnProperty(stat)) {
             this.pet.customParams[stat] += newItem.customParams[stat];
           }
-
         }
 
+        //update the visuals for the stats
         this.refreshStats();
 
       }, this);
 
-
-
-
+      //start the tween animation
+      petMovement.start();
     }
-    // initiate the petMovment here
-    petMovement.start();
 
   },
-  // New function pick item passing the sprite object and event listener
-  rotatePet: function(sprite, event) {
-    // if ui is blocked then do this
-    if (!this.uiBlocked) {
-      console.log('object rotated');
-      this.uiBlocked = true;
-      this.clearSelection();
-      sprite.alpha = 0.4; // This makes sprite more transparent indicating selection
-
-      // pet rotation
-      var petRotation = this.game.add.tween(this.pet);
-      // change pet angle to 720 for multiple rotation
-      petRotation.to({
-        angle: '+2880'
-      }, 800);
-      petRotation.onComplete.add(function() {
-        this.uiBlocked = false;
-        sprite.alpha = 1;
-        this.pet.customParams.fun += 10;
-        this.refreshStats();
-      }, this);
-      // initiate the pet rotation
-      petRotation.start();
-
-    }
-  },
-  // clearing function
-  clearSelection: function() {
-    //for loop with a default function passing the element of the buttons array will set transparency back to opaque
-    this.buttons.forEach(function(element, index) {
-      element.alpha = 1;
-
-    });
-    // changing selected item back to unselected
-    this.selectedItem = null;
-  },
-
   refreshStats: function() {
     this.healthText.text = this.pet.customParams.health;
     this.funText.text = this.pet.customParams.fun;
   },
-// function to reduce custom stats
-  reduceProperties: function(){
+  reduceProperties: function() {
     this.pet.customParams.health -= 10;
     this.pet.customParams.fun -= 15;
     this.refreshStats();
-
   },
-
+  //executed multiple times per second
   update: function() {
-
-    // if custom params health is lessthan or equal to zero then update pet frame to #4 which is kill frame then set ui to block everything
     if(this.pet.customParams.health <= 0 || this.pet.customParams.fun <= 0) {
-
-      this.pet.frame =4;
+      this.pet.frame = 4;
       this.uiBlocked = true;
-      // adding timer event to trigger at death and run gameOver function
+
       this.game.time.events.add(2000, this.gameOver, this);
     }
-
   },
+  gameOver: function() {
+    this.game.state.restart();
+  }
 
-gameOver: function() {
-  this.game.state.restart();
-}
+
 };
