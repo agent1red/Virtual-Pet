@@ -1,18 +1,5 @@
 // This game will have 1 state
 
- var GameState = {
-   preload: function() {
-
-   },
-
-   create: function() {
-
-   },
-
-   update: function() {
-
-   },
- };
 
  var GameState = {
    init: function(){
@@ -35,7 +22,9 @@
 
    create: function() {
       this.background = this.game.add.sprite(0,0,'backyard');
-
+      // enabling background to be selectable to have items place anywhere on the game background
+      this.background.inputEnabled = true;
+      this.background.events.onInputDown.add(this.placeItem, this); // event listener using a new function placeItem
 
 
       this.pet = this.game.add.sprite(100, 400, 'pet');
@@ -53,9 +42,9 @@
       // bottom elements of game
       this.apple = this.game.add.sprite(53, 570, 'apple');
       this.apple.anchor.setTo(0.5);
-      this.apple.inputEnabled = true;
+      this.apple.inputEnabled = true;// initializing input
       this.apple.customParams = {health: 20};
-      this.apple.events.onInputDown.add(this.pickItem, this);
+      this.apple.events.onInputDown.add(this.pickItem, this);// allowing the item to be selected utilizing a new function created called pickItem
 
       this.candy = this.game.add.sprite(223, 570, 'candy');
       this.candy.anchor.setTo(0.5);
@@ -89,15 +78,29 @@
 // New function pick item passing the sprite object and event listener
    pickItem: function(sprite, event) {
       // check for blocked UI interface
-if (!this.uiBlocked) {
-   console.log('item picked');
-   this.clearSelection();
+if (!this.uiBlocked) { // if the game ui is blocked
+   console.log('item picked');// verify this is working
+   this.clearSelection();// run clearSelection function to clear item
    sprite.alpha = 0.4; // This makes sprite more transparent indicating selection
    this.selectedItem = sprite;
 }
 
    },
 
+placeItem: function(sprite, event){
+// get position where we touched on the background through an x and y coordinate
+
+   var x = event.position.x;
+   var y = event.position.y;
+
+// call sprite to be added to that position
+
+   var newItem = this.game.add.sprite(x,y, this.selectedItem.key);// creating new item from sprite last selected item using the key variable it will know what the last item in memory is and place that name in memory to be used to call the new sprite
+
+
+
+
+},
       // New function pick item passing the sprite object and event listener
          rotatePet: function(sprite, event) {
             // if ui is blocked then do this
@@ -121,13 +124,14 @@ if (!this.uiBlocked) {
                petRotation.start();
             }
          },
-
+         // clearing function
          clearSelection: function() {
+           //for loop with a default function passing the element of the buttons array will set transparency back to opaque
             this.buttons.forEach(function(element, index){
                element.alpha = 1;
 
             });
-
+            // changing selected item back to unselected
             this.selectedItem = null;
          },
 
